@@ -1,0 +1,98 @@
+package montecarlo
+
+import (
+	"math/rand"
+	"time"
+)
+
+// Find area of a function from a to b.
+// Pass in the function, a, b, and n=number of random points to be created
+// max is used as the top of the rectangle, should be above the local maxima in the function
+func Darts(f func(x float64) float64, a, b, max float64, n int) (float64, time.Duration) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	start := time.Now()
+	// number of points that land under the function
+	in := 0
+	for i := 0; i < n; i++ {
+		// random x point transformed within the bounds of (a, b)
+		x := r.Float64()*(b-a) + a
+		// random y point from 0-max
+		y := r.Float64() * max
+		// is the point under the function?
+		if y <= f(x) {
+			in++
+		}
+	}
+	elapsed := time.Since(start)
+	// area of rectangle * percent of points within the function bounds
+	return max * (b - a) * (float64(in) / float64(n)), elapsed
+}
+
+func Mean(f func(x float64) float64, a, b float64, n int) (float64, time.Duration) {
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	start := time.Now()
+	var sum float64 = 0
+	for i := 0; i < n; i++ {
+		// Generates random x coordinate, calculates the Y val and adds it to the rolling sum
+		x := r.Float64()*(b-a) + a
+		sum += f(x)
+	}
+	elapsed := time.Since(start)
+	// Returns the average (sum/n) * the range of the interval
+	return (b - a) * sum / (float64(n)), elapsed
+}
+
+// Basic trapezoidal method, uses (b-a)/n as each step (h)
+func Trap(f func(x float64) float64, a, b float64, n int) (float64, time.Duration) {
+	start := time.Now()
+	var sum float64 = 0
+	h := (b - a) / float64(n)
+	for i := 0; i < n; i++ {
+		sum += (f(a+h*float64(i)) + f(a+h*float64(i+1))) * h / 2
+	}
+	elapsed := time.Since(start)
+	return sum, elapsed
+}
+
+// Gaussian Quadrature, uses 16 points
+func GQuad(f func(x float64) float64, a, b float64) (float64, time.Duration) {
+	weights := []float64{2.71524594117540686577516595434644841589033603668212890625 / 100,
+		6.22535239386479977152788478633738122880458831787109375 / 100,
+		9.515851168249274405486204386761528439819812774658203125 / 100,
+		1.2462897125553355770488650478000636212527751922607421875 / 10,
+		1.495959888165766249468191517735249362885951995849609375 / 10,
+		1.691565193950033130221299870754592120647430419921875 / 10,
+		1.826034150449232507096297695170505903661251068115234375 / 10,
+		1.8945061045506916830305499388487078249454498291015625 / 10,
+		1.894506104550683911469377562752924859523773193359375 / 10,
+		1.826034150449235837765371570640127174556255340576171875 / 10,
+		1.69156519395002147287954130661091767251491546630859375 / 10,
+		1.495959888165760143241556079374277032911777496337890625 / 10,
+		1.2462897125553425159427689550284412689507007598876953125 / 10,
+		9.5158511682492910588315737641096347942948341369628906250 / 100,
+		6.2253523938647255253631129789937403984367847442626953125 / 100,
+		2.7152459411754668872074347518719150684773921966552734375 / 100}
+	n := []float64{-.9894009349916501605548546649515628814697265625,
+		-.9445750230732328223126614830107428133487701416015625,
+		-.865631202387831866218448340077884495258331298828125,
+		-.75540440835500322069862022544839419424533843994140625,
+		-.61787624440264410363710112505941651761531829833984375,
+		-.45801677765722736968001527202432043850421905517578125,
+		-.2816035507792584713371297766570933163166046142578125,
+		-.09501250983763741275733849533935426734387874603271484375,
+		.09501250983763771806867026725740288384258747100830078125,
+		.28160355077925947053785193929797969758510589599609375,
+		.45801677765722736968001527202432043850421905517578125,
+		.6178762444026439926147986625437624752521514892578125,
+		.75540440835500299865401530041708610951900482177734375,
+		.8656312023878316441738434150465764105319976806640625,
+		.94457502307323248924575409546378068625926971435546875,
+		.98940093499164982748794727740460075438022613525390625}
+	start := time.Now()
+	var sum float64 = 0
+	for i := range weights {
+		sum += weights[i] * (b - a) / 2 * f((b-a)/2*n[i]+(b+a)/2)
+	}
+	elapsed := time.Since(start)
+	return sum, elapsed
+}
