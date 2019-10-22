@@ -1,7 +1,6 @@
 package queens
 
 import (
-	"fmt"
 	"math/rand"
 	"time"
 )
@@ -39,13 +38,17 @@ func solve(queens []queen, col int32) []queen {
 	return nil
 }
 
-func RQueens(k int) {
+func RQueens(k int) (bool, int64) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
+	start := time.Now()
 	var queens []queen
-
 	for i := 0; i < k; i++ {
+		j := 0
 		for {
+			// Limiter for random queen placement
+			if j > 1000 {
+				return false, 0
+			}
 			valid := true
 			tmp := queen{
 				x: r.Int31n(8),
@@ -63,22 +66,28 @@ func RQueens(k int) {
 				queens = append(queens, tmp)
 				break
 			}
+			j++
 		}
 	}
 
 	queens = solve(queens, 0)
+	elapsed := time.Since(start)
+	if queens == nil {
+		return false, 0
+	}
+	return true, elapsed.Nanoseconds()
+	// var board [8][8]string
+	// for i := 0; i < 8; i++ {
+	// 	for j := 0; j < 8; j++ {
+	// 		board[i][j] = "O"
+	// 	}
+	// }
+	// for _, q := range queens {
+	// 	board[q.x][q.y] = "X"
+	// }
 
-	var board [8][8]string
-	for i := 0; i < 8; i++ {
-		for j := 0; j < 8; j++ {
-			board[i][j] = "O"
-		}
-	}
-	for _, q := range queens {
-		board[q.x][q.y] = "X"
-	}
+	// for _, row := range board {
+	// 	fmt.Println(row)
+	// }
 
-	for _, row := range board {
-		fmt.Println(row)
-	}
 }

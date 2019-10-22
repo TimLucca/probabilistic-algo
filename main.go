@@ -77,5 +77,17 @@ func main() {
 	fmt.Println("\nGaussian Quadrature")
 	fmt.Printf("The area of e^(x*sin(x)) from (-π, π): %f\nTook: %s\n", gauss, t)
 
-	queens.RQueens(5)
+	var success [9][2]int64
+	for i := 0; i < 1000; i++ {
+		for i := 0; i < 9; i++ {
+			s, t := queens.RQueens(i)
+			if s {
+				success[i][0] += 1
+				success[i][1] += t
+			}
+		}
+	}
+	for i := range success {
+		fmt.Printf("\nNumber of random queens: %d\nNumber of successful boards: %d\nAverage Time for success: %f nanoseconds\n", i, success[i][0], float64(success[i][1])/float64(success[i][0]))
+	}
 }
